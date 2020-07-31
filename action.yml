@@ -1,6 +1,8 @@
 name: "Dub Upgrade"
 description: "Run `dub upgrade` trying to repeat on network failure and using package cache"
 author: "WebFreak001"
+icon: "package"
+color: "red"
 inputs:
   cache:
     description: "Boolean if packages should be cached. If this is called before a build this will only cache downloaded files, if this is called after a build as well this will cache the compiled libraries, making future completion faster."
