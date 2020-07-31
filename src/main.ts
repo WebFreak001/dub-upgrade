@@ -26,20 +26,10 @@ async function main(): Promise<void> {
 
 		let cacheDirs: string[] | null;
 		if (doCache) {
-			const checker = await glob.create("**/.dub", {
-				implicitDescendants: false
-			});
-			let files = await checker.glob();
-			if (files.length > 0) {
-				if (dubPackagesDirectory)
-					cacheDirs = [dubPackagesDirectory, "**/.dub"];
-				else
-					cacheDirs = ["**/.dub"];
-			} else if (dubPackagesDirectory) {
-				cacheDirs = [dubPackagesDirectory];
-			} else {
-				cacheDirs = null;
-			}
+			if (dubPackagesDirectory)
+				cacheDirs = [dubPackagesDirectory, "**/.dub"];
+			else
+				cacheDirs = ["**/.dub"];
 		} else {
 			cacheDirs = null;
 		}
