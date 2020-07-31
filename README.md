@@ -33,7 +33,9 @@ steps:
   - name: Run tests # do whatever with upgraded & fetched dependencies
     run: dub test
 
-  - uses: WebFreak001/dub-upgrade@v0.1 # second call caches current binaries
+  - uses: WebFreak001/dub-upgrade@v0.1 # second call to cache dependency binaries
+    with:
+      store: true # set this to true to not run an upgrade but only update cache
 ```
 
 Not using cache, only retrying on network failure:

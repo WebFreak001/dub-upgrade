@@ -8,6 +8,9 @@ inputs:
   cache:
     description: "Boolean if packages should be cached. If this is called before a build this will only cache downloaded files, if this is called after a build as well this will cache the compiled libraries, making future completion faster."
     default: true
+  store:
+    description: "Boolean if this should just cache all (compiled) dub dependencies under a separate cache key. Should be called after building."
+    default: false
   args:
     description: "Any custom arguments (shell syntax) to pass after `dub upgrade`. Will be used multiple times in case of dub network failures."
     default: ""

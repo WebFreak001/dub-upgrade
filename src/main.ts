@@ -10,6 +10,7 @@ import glob from "glob";
 async function main(): Promise<void> {
 	try {
 		const doCache: boolean = parseBool(core.getInput("cache", { required: false }));
+		const onlyStore: boolean = parseBool(core.getInput("store", { required: false }));
 		const dubArgs: string = core.getInput("args", { required: false }) || "";
 
 		let dubPackagesDirectory: string | null;
@@ -39,6 +40,23 @@ async function main(): Promise<void> {
 			cacheDirs = null;
 		}
 
+		async function storeCache() {
+			if (cacheDirs) {
+				console.log("Storing dub package cache");
+				cacheKey = `dub-package-cache-${process.platform}-${await hashAll(dubArgs, cacheDirs, onlyStore)}`;
+
+				try {
+					await cache.saveCache(cacheDirs, cacheKey);
+				} catch (e) {
+					console.log("Did not upload cache (probably already recent version)")
+				}
+			}
+		}
+
+		if (onlyStore) {
+			await storeCache();
+			return;
+		}
 
 		let dub = which.sync("dub", { nothrow: true });
 		if (!dub)
@@ -54,16 +72,7 @@ async function main(): Promise<void> {
 
 		await dubUpgrade(dub, dubArgs);
 
-		if (cacheDirs) {
-			console.log("Storing dub package cache");
-			cacheKey = `dub-package-cache-${process.platform}-${await hashAll(dubArgs, cacheDirs)}`;
-
-			try {
-				await cache.saveCache(cacheDirs, cacheKey);
-			} catch (e) {
-				console.log("Did not upload cache (probably already recent version)")
-			}
-		}
+		await storeCache();
 	} catch (e) {
 		core.setFailed("dub upgrade failed: " + e.toString());
 	}
@@ -135,7 +144,7 @@ function hash(data: string): string {
 	return shasum.digest("base64");
 }
 
-function hashAll(data: string, dirs: string[]): string {
+function hashAll(data: string, dirs: string[], buildCache: boolean): string {
 	for (let i = 0; i < dirs.length; i++) {
 		const dir = dirs[i];
 		data += "\n" + fs.readdirSync(dir).join("\n");
@@ -146,6 +155,9 @@ function hashAll(data: string, dirs: string[]): string {
 		const file = files[i];
 		data += "\n" + hash(fs.readFileSync(file).toString());
 	}
+
+	if (buildCache)
+		data += "\nput in build cache!";
 
 	const shasum = crypto.createHash('sha1');
 	shasum.update(data);
