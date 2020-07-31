@@ -47,7 +47,7 @@ async function main(): Promise<void> {
 		async function storeCache() {
 			if (cacheDirs) {
 				console.log("Storing dub package cache");
-				cacheKey = `dub-package-cache-${process.platform}-${await hashAll(dubArgs, cacheDirs, onlyStore)}`;
+				cacheKey = `dub-package-cache-${process.platform}-${await hashAll(dubArgs, dubPackagesDirectory, onlyStore)}`;
 
 				try {
 					await cache.saveCache(cacheDirs, cacheKey);
@@ -148,11 +148,9 @@ function hash(data: string): string {
 	return shasum.digest("base64");
 }
 
-async function hashAll(data: string, dirs: string[], buildCache: boolean): Promise<string> {
-	for (let i = 0; i < dirs.length; i++) {
-		const dir = dirs[i];
-		data += "\n" + fs.readdirSync(dir).join("\n");
-	}
+async function hashAll(data: string, dubDir: string | null, buildCache: boolean): Promise<string> {
+	if (dubDir)
+		data += "\n" + fs.readdirSync(dubDir).join("\n");
 
 	const globber = await glob.create("**/dub.selections.json");
 	for await (const file of globber.globGenerator()) {
