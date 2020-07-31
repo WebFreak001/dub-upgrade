@@ -26,20 +26,10 @@ async function main(): Promise<void> {
 
 		let cacheDirs: string[] | null;
 		if (doCache) {
-			const checker = await glob.create("**/.dub", {
-				implicitDescendants: false
-			});
-			let files = await checker.glob();
-			if (files.length > 0) {
-				if (dubPackagesDirectory)
-					cacheDirs = [dubPackagesDirectory, "**/.dub"];
-				else
-					cacheDirs = ["**/.dub"];
-			} else if (dubPackagesDirectory) {
-				cacheDirs = [dubPackagesDirectory];
-			} else {
-				cacheDirs = null;
-			}
+			if (dubPackagesDirectory)
+				cacheDirs = [dubPackagesDirectory, "**/.dub"];
+			else
+				cacheDirs = ["**/.dub"];
 		} else {
 			cacheDirs = null;
 		}
@@ -71,7 +61,16 @@ async function main(): Promise<void> {
 		console.log("cache dirs: ", cacheDirs);
 		console.log("dub: ", dub);
 		if (cacheDirs) {
-			await cache.restoreCache(cacheDirs, cacheKey, ["dub-package-cache-" + process.platform]);
+			try {
+				await cache.restoreCache(cacheDirs, cacheKey, ["dub-package-cache-" + process.platform]);
+			} catch (e) {
+				// try again without **/dub.jsno
+				let last = cacheDirs.pop();
+				if (last) {
+					await cache.restoreCache(cacheDirs, cacheKey, ["dub-package-cache-" + process.platform]);
+					cacheDirs.push(last);
+				}
+			}
 		}
 
 		await dubUpgrade(dub, dubArgs);
