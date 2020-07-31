@@ -1,11 +1,11 @@
 import * as core from "@actions/core";
 import * as cache from "@actions/cache";
+import * as glob from "@actions/glob";
 import * as fs from "fs";
 import * as path from "path";
 import { ChildProcess, spawn } from "child_process";
 import which from "which";
 import crypto from 'crypto';
-import glob from "glob";
 
 async function main(): Promise<void> {
 	try {
@@ -26,7 +26,11 @@ async function main(): Promise<void> {
 
 		let cacheDirs: string[] | null;
 		if (doCache) {
-			if (glob.sync("**/.dub").length > 0) {
+			const checker = await glob.create("**/.dub", {
+				implicitDescendants: false
+			});
+			let files = await checker.glob();
+			if (files.length > 0) {
 				if (dubPackagesDirectory)
 					cacheDirs = [dubPackagesDirectory, "**/.dub"];
 				else
@@ -144,15 +148,14 @@ function hash(data: string): string {
 	return shasum.digest("base64");
 }
 
-function hashAll(data: string, dirs: string[], buildCache: boolean): string {
+async function hashAll(data: string, dirs: string[], buildCache: boolean): Promise<string> {
 	for (let i = 0; i < dirs.length; i++) {
 		const dir = dirs[i];
 		data += "\n" + fs.readdirSync(dir).join("\n");
 	}
 
-	var files = glob.sync("**/dub.selections.json");
-	for (let i = 0; i < files.length; i++) {
-		const file = files[i];
+	const globber = await glob.create("**/dub.selections.json");
+	for await (const file of globber.globGenerator()) {
 		data += "\n" + hash(fs.readFileSync(file).toString());
 	}
 
