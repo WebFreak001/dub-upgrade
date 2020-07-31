@@ -25,10 +25,16 @@ async function main(): Promise<void> {
 
 		let cacheDirs: string[] | null;
 		if (doCache) {
-			if (dubPackagesDirectory)
-				cacheDirs = [dubPackagesDirectory, "*/.dub"];
-			else
-				cacheDirs = ["*/.dub"];
+			if (glob.sync("**/.dub").length > 0) {
+				if (dubPackagesDirectory)
+					cacheDirs = [dubPackagesDirectory, "*/.dub"];
+				else
+					cacheDirs = ["*/.dub"];
+			} else if (dubPackagesDirectory) {
+				cacheDirs = [dubPackagesDirectory];
+			} else {
+				cacheDirs = null;
+			}
 		} else {
 			cacheDirs = null;
 		}
