@@ -57,7 +57,12 @@ async function main(): Promise<void> {
 		if (cacheDirs) {
 			console.log("Storing dub package cache");
 			cacheKey = `dub-package-cache-${process.platform}-${await hashAll(dubArgs, cacheDirs)}`;
-			await cache.saveCache(cacheDirs, cacheKey);
+
+			try {
+				await cache.saveCache(cacheDirs, cacheKey);
+			} catch (e) {
+				console.log("Did not upload cache (probably already recent version)")
+			}
 		}
 	} catch (e) {
 		core.setFailed("dub upgrade failed: " + e.toString());
