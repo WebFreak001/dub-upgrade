@@ -26,10 +26,20 @@ async function main(): Promise<void> {
 
 		let cacheDirs: string[] | null;
 		if (doCache) {
-			if (dubPackagesDirectory)
-				cacheDirs = [dubPackagesDirectory, "**/.dub"];
-			else
-				cacheDirs = ["**/.dub"];
+			const checker = await glob.create("**/.dub", {
+				implicitDescendants: false
+			});
+			let files = await checker.glob();
+			if (files.length > 0) {
+				if (dubPackagesDirectory)
+					cacheDirs = [dubPackagesDirectory, "**/.dub"];
+				else
+					cacheDirs = ["**/.dub"];
+			} else if (dubPackagesDirectory) {
+				cacheDirs = [dubPackagesDirectory];
+			} else {
+				cacheDirs = null;
+			}
 		} else {
 			cacheDirs = null;
 		}
@@ -37,7 +47,7 @@ async function main(): Promise<void> {
 		async function storeCache() {
 			if (cacheDirs) {
 				console.log("Storing dub package cache");
-				cacheKey = `dub-package-cache-${process.platform}-${await hashAll(dubArgs, cacheDirs, onlyStore)}`;
+				cacheKey = `dub-package-cache-${process.platform}-${await hashAll(dubArgs, dubPackagesDirectory, onlyStore)}`;
 
 				try {
 					await cache.saveCache(cacheDirs, cacheKey);
@@ -61,16 +71,7 @@ async function main(): Promise<void> {
 		console.log("cache dirs: ", cacheDirs);
 		console.log("dub: ", dub);
 		if (cacheDirs) {
-			try {
-				await cache.restoreCache(cacheDirs, cacheKey, ["dub-package-cache-" + process.platform]);
-			} catch (e) {
-				// try again without **/dub.jsno
-				let last = cacheDirs.pop();
-				if (last) {
-					await cache.restoreCache(cacheDirs, cacheKey, ["dub-package-cache-" + process.platform]);
-					cacheDirs.push(last);
-				}
-			}
+			await cache.restoreCache(cacheDirs, cacheKey, ["dub-package-cache-" + process.platform]);
 		}
 
 		await dubUpgrade(dub, dubArgs);
@@ -147,11 +148,9 @@ function hash(data: string): string {
 	return shasum.digest("base64");
 }
 
-async function hashAll(data: string, dirs: string[], buildCache: boolean): Promise<string> {
-	for (let i = 0; i < dirs.length; i++) {
-		const dir = dirs[i];
-		data += "\n" + fs.readdirSync(dir).join("\n");
-	}
+async function hashAll(data: string, dubDir: string | null, buildCache: boolean): Promise<string> {
+	if (dubDir)
+		data += "\n" + fs.readdirSync(dubDir).join("\n");
 
 	const globber = await glob.create("**/dub.selections.json");
 	for await (const file of globber.globGenerator()) {
