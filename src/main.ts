@@ -28,9 +28,9 @@ async function main(): Promise<void> {
 		if (doCache) {
 			if (glob.sync("**/.dub").length > 0) {
 				if (dubPackagesDirectory)
-					cacheDirs = [dubPackagesDirectory, "*/.dub"];
+					cacheDirs = [dubPackagesDirectory, "**/.dub"];
 				else
-					cacheDirs = ["*/.dub"];
+					cacheDirs = ["**/.dub"];
 			} else if (dubPackagesDirectory) {
 				cacheDirs = [dubPackagesDirectory];
 			} else {
