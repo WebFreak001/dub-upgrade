@@ -1,17 +1,15 @@
 import * as core from "@actions/core";
-import * as tc from "@actions/tool-cache";
+import * as cache from "@actions/cache";
 import * as fs from "fs";
 import * as path from "path";
 import { ChildProcess, spawn } from "child_process";
 import mkdirp from "mkdirp";
 import { ncp } from "ncp";
 import which from "which";
+import crypto from 'crypto';
 
 async function main(): Promise<void> {
 	try {
-		const cacheTool = "dub-package-cache";
-		const cacheVersion = "dub-cache-v1";
-
 		const doCache: boolean = parseBool(core.getInput("cache", { required: false }));
 		const dubArgs: string = core.getInput("args", { required: false }) || "";
 
@@ -23,7 +21,17 @@ async function main(): Promise<void> {
 		}
 
 		if (doCache && !dubPackagesDirectory) {
-			console.warn("Could not determine dub packages directory, not caching!");
+			console.warn("Could not determine dub packages directory, not caching global packages!");
+		}
+
+		let cacheDirs: string[] | null;
+		if (doCache) {
+			if (dubPackagesDirectory)
+				cacheDirs = [dubPackagesDirectory, "*/.dub"];
+			else
+				cacheDirs = ["*/.dub"];
+		} else {
+			cacheDirs = null;
 		}
 
 
@@ -31,22 +39,19 @@ async function main(): Promise<void> {
 		if (!dub)
 			return core.setFailed("dub is not installed or was not found in PATH - try installing D using dlang-community/setup-dlang@v1 first!");
 
-		console.log("package dir: ", dubPackagesDirectory);
+		const cacheKey = `dub-package-cache-${process.platform}-${hash(dubArgs)}`;
+
+		console.log("cache dirs: ", cacheDirs);
 		console.log("dub: ", dub);
-		if (dubPackagesDirectory) {
-			const cached = tc.find(cacheTool, cacheVersion);
-			console.log("cached: ", cached);
-			if (cached) {
-				console.log("Pre-loading cached dub packages");
-				copyCacheDirectory(cached, dubPackagesDirectory);
-			}
+		if (cacheDirs) {
+			await cache.restoreCache(cacheDirs, cacheKey);
 		}
 
 		await dubUpgrade(dub, dubArgs);
 
-		if (dubPackagesDirectory) {
+		if (cacheDirs) {
 			console.log("Storing dub package cache");
-			await tc.cacheDir(dubPackagesDirectory, cacheTool, cacheVersion);
+			await cache.saveCache(cacheDirs, cacheKey);
 		}
 	} catch (e) {
 		core.setFailed("dub upgrade failed: " + e.toString());
@@ -113,18 +118,10 @@ function execDubUpgrade(dub: string, dubArgs: string): Promise<boolean> {
 	});
 }
 
-async function copyCacheDirectory(src: string, dst: string): Promise<void> {
-	await mkdirp(path.dirname(dst));
-	return await new Promise((resolve, reject) => {
-		ncp(src, dst, {
-			clobber: false, // don't replace existing because we only do this for cache -> local copying
-		}, (err) => {
-			if (err)
-				reject(err);
-			else
-				resolve();
-		});
-	});
+function hash(data: string): string {
+	const shasum = crypto.createHash('sha1');
+	shasum.update(data);
+	return shasum.digest("base64");
 }
 
 function delay(ms: number): Promise<void> {
