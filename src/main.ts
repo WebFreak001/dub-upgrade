@@ -3,10 +3,9 @@ import * as cache from "@actions/cache";
 import * as fs from "fs";
 import * as path from "path";
 import { ChildProcess, spawn } from "child_process";
-import mkdirp from "mkdirp";
-import { ncp } from "ncp";
 import which from "which";
 import crypto from 'crypto';
+import glob from "glob";
 
 async function main(): Promise<void> {
 	try {
@@ -39,18 +38,19 @@ async function main(): Promise<void> {
 		if (!dub)
 			return core.setFailed("dub is not installed or was not found in PATH - try installing D using dlang-community/setup-dlang@v1 first!");
 
-		const cacheKey = `dub-package-cache-${process.platform}-${hash(dubArgs)}`;
+		let cacheKey = `dub-package-cache-${process.platform}-${hash(dubArgs)}`;
 
 		console.log("cache dirs: ", cacheDirs);
 		console.log("dub: ", dub);
 		if (cacheDirs) {
-			await cache.restoreCache(cacheDirs, cacheKey);
+			await cache.restoreCache(cacheDirs, cacheKey, ["dub-package-cache-" + process.platform]);
 		}
 
 		await dubUpgrade(dub, dubArgs);
 
 		if (cacheDirs) {
 			console.log("Storing dub package cache");
+			cacheKey = `dub-package-cache-${process.platform}-${await hashAll(dubArgs, cacheDirs)}`;
 			await cache.saveCache(cacheDirs, cacheKey);
 		}
 	} catch (e) {
@@ -119,6 +119,23 @@ function execDubUpgrade(dub: string, dubArgs: string): Promise<boolean> {
 }
 
 function hash(data: string): string {
+	const shasum = crypto.createHash('sha1');
+	shasum.update(data);
+	return shasum.digest("base64");
+}
+
+function hashAll(data: string, dirs: string[]): string {
+	for (let i = 0; i < dirs.length; i++) {
+		const dir = dirs[i];
+		data += "\n" + fs.readdirSync(dir).join("\n");
+	}
+
+	var files = glob.sync("**/dub.selections.json");
+	for (let i = 0; i < files.length; i++) {
+		const file = files[i];
+		data += "\n" + hash(fs.readFileSync(file).toString());
+	}
+
 	const shasum = crypto.createHash('sha1');
 	shasum.update(data);
 	return shasum.digest("base64");
