@@ -85,11 +85,11 @@ function execDubUpgrade(dub: string, dubArgs: string): Promise<boolean> {
 	return new Promise((resolve, reject) => {
 		let output = "";
 		proc.stdout?.on("data", (chunk) => {
-			console.log(chunk);
+			console.log(chunk.toString());
 			output += chunk;
 		});
 		proc.stderr?.on("data", (chunk) => {
-			console.log(chunk);
+			console.log(chunk.toString());
 			output += chunk;
 		});
 		proc.on("close", (code) => {
