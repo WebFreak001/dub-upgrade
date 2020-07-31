@@ -47,7 +47,7 @@ async function main(): Promise<void> {
 		async function storeCache() {
 			if (cacheDirs) {
 				console.log("Storing dub package cache");
-				cacheKey = `dub-package-cache-${process.platform}-${await hashAll(dubArgs, dubPackagesDirectory, onlyStore)}`;
+				let cacheKey = `dub-package-cache-${process.platform}-${await hashAll(dubArgs, dubPackagesDirectory, onlyStore)}`;
 
 				try {
 					await cache.saveCache(cacheDirs, cacheKey);
