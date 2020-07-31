@@ -36,7 +36,6 @@ async function main(): Promise<void> {
 
 		async function storeCache() {
 			if (cacheDirs) {
-				console.log("Storing dub package cache");
 				let cacheKey = `dub-package-cache-${process.platform}-${await hashAll(dubArgs, dubPackagesDirectory, onlyStore)}`;
 
 				try {
@@ -58,8 +57,6 @@ async function main(): Promise<void> {
 
 		let cacheKey = `dub-package-cache-${process.platform}-${hash(dubArgs)}`;
 
-		console.log("cache dirs: ", cacheDirs);
-		console.log("dub: ", dub);
 		if (cacheDirs) {
 			await cache.restoreCache(cacheDirs, cacheKey, ["dub-package-cache-" + process.platform]);
 		}
