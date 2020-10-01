@@ -20,7 +20,7 @@
 	"license": "Unlicense",
 	"dependencies": {
 		"@actions/cache": "^1.0.1",
-		"@actions/core": "^1.2.4",
+		"@actions/core": "^1.2.6",
 		"@actions/glob": "^0.1.0",
 		"which": "^2.0.2"
 	},
