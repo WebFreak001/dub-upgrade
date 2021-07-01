@@ -136,8 +136,12 @@ function hash(data: string): string {
 }
 
 async function hashAll(data: string, dubDir: string | null, buildCache: boolean): Promise<string> {
-	if (dubDir)
-		data += "\n" + fs.readdirSync(dubDir).join("\n");
+	if (dubDir) {
+		if (fs.existsSync(dubDir) && fs.statSync(dubDir).isDirectory())
+			data += "\n" + fs.readdirSync(dubDir).join("\n");
+		else
+			data += "\ndub folder doesn't exist";
+	}
 
 	const globber = await glob.create("**/dub.selections.json");
 	for await (const file of globber.globGenerator()) {
