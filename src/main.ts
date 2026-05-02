@@ -123,7 +123,7 @@ function execDubUpgrade(dub: string, dubArgs: string): Promise<boolean> {
       process.stderr.write(chunk.toString());
       output += chunk;
     });
-    proc.on("close", (code) => {
+    proc.on("close", (code, signal) => {
       if (code == 0) {
         resolve(true);
       } else {
@@ -133,8 +133,8 @@ function execDubUpgrade(dub: string, dubArgs: string): Promise<boolean> {
         ) {
           return resolve(false);
         } else {
-          console.log(output);
-          return reject("dub exited with error code " + code);
+          const exitDesc = signal ? `signal ${signal}` : `error code ${code}`;
+          return reject("dub exited with " + exitDesc);
         }
       }
     });
