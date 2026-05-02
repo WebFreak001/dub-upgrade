@@ -34,7 +34,7 @@ jobs:
       - name: Dub Upgrade
         uses: ./
         with:
-          args: "--root test"
+          args: "--root test --missing-only --sub-packages"
 
   nodeps:
     name: Test Action with no dependencies
@@ -61,5 +61,5 @@ jobs:
       - name: Dub Upgrade
         uses: ./
         with:
-          args: "--root test"
+          args: "--root nodeps --missing-only --sub-packages"
 
