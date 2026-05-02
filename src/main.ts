@@ -7,7 +7,7 @@ import { ChildProcess, spawn } from "child_process";
 import which from "which";
 import crypto from "crypto";
 
-async function main(): Promise<void> {
+export async function main(): Promise<void> {
   try {
     const doCache: boolean = parseBool(
       core.getInput("cache", { required: false }),
@@ -77,7 +77,7 @@ async function main(): Promise<void> {
   }
 }
 
-async function dubUpgrade(dub: string, dubArgs: string): Promise<void> {
+export async function dubUpgrade(dub: string, dubArgs: string): Promise<void> {
   console.log("Running dub upgrade");
   if (!(await execDubUpgrade(dub, dubArgs))) {
     console.log("Dub network failure, trying again in 30s...");
