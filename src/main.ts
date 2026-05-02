@@ -1,19 +1,13 @@
 import * as core from "@actions/core";
 import * as cache from "@actions/cache";
-import * as glob from "@actions/glob";
-import * as fs from "fs";
-import * as path from "path";
 import { ChildProcess, spawn } from "child_process";
 import which from "which";
-import crypto from "crypto";
+import { hashAll, getDubPackagesDirectory, parseBool } from "./util.js";
 
 export async function main(): Promise<void> {
   try {
     const doCache: boolean = parseBool(
       core.getInput("cache", { required: false }),
-    );
-    const onlyStore: boolean = parseBool(
-      core.getInput("store", { required: false }),
     );
     const dubArgs: string = core.getInput("args", { required: false }) || "";
 
@@ -38,40 +32,23 @@ export async function main(): Promise<void> {
       cacheDirs = null;
     }
 
-    async function storeCache() {
-      if (cacheDirs) {
-        let cacheKey = `dub-package-cache-${process.platform}-${await hashAll(dubArgs, dubPackagesDirectory, onlyStore)}`;
-
-        try {
-          await cache.saveCache(cacheDirs, cacheKey);
-        } catch (e) {
-          console.log("Did not upload cache (probably already recent version)");
-        }
-      }
-    }
-
-    if (onlyStore) {
-      await storeCache();
-      return;
-    }
-
     let dub = which.sync("dub", { nothrow: true });
     if (!dub)
       return core.setFailed(
         "dub is not installed or was not found in PATH - try installing D using dlang-community/setup-dlang@v1 first!",
       );
 
-    let cacheKey = `dub-package-cache-${process.platform}-${hash(dubArgs)}`;
-
+    const cacheKey = `dub-package-cache-${process.platform}-${await hashAll(dubArgs)}`;
     if (cacheDirs) {
       await cache.restoreCache(cacheDirs, cacheKey, [
-        "dub-package-cache-" + process.platform,
+        `dub-package-cache-${process.platform}-`,
+        `dub-package-cache-`,
       ]);
+      core.saveState("CACHE_DIRS", JSON.stringify(cacheDirs));
+      core.saveState("CACHE_KEY", cacheKey);
     }
 
     await dubUpgrade(dub, dubArgs);
-
-    await storeCache();
   } catch (e) {
     core.setFailed("dub upgrade failed: " + e);
   }
@@ -141,84 +118,8 @@ function execDubUpgrade(dub: string, dubArgs: string): Promise<boolean> {
   });
 }
 
-function hash(data: string): string {
-  const shasum = crypto.createHash("sha1");
-  shasum.update(data);
-  return shasum.digest("base64");
-}
-
-async function hashAll(
-  data: string,
-  dubDir: string | null,
-  buildCache: boolean,
-): Promise<string> {
-  if (dubDir) {
-    if (fs.existsSync(dubDir) && fs.statSync(dubDir).isDirectory())
-      data += "\n" + fs.readdirSync(dubDir).join("\n");
-    else data += "\ndub folder doesn't exist";
-  }
-
-  const globber = await glob.create("**/dub.selections.json");
-  for await (const file of globber.globGenerator()) {
-    data += "\n" + hash(fs.readFileSync(file).toString());
-  }
-
-  if (buildCache) data += "\nput in build cache!";
-
-  const shasum = crypto.createHash("sha1");
-  shasum.update(data);
-  return shasum.digest("base64");
-}
-
 function delay(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
-function getDubPackagesDirectory(): string | null {
-  switch (process.platform) {
-    // posix
-    case "linux":
-    case "freebsd":
-    case "openbsd":
-    case "netbsd":
-    case "darwin":
-    case "android":
-    case "sunos":
-    case "aix":
-      let home = process.env["HOME"];
-      if (home) {
-        return path.join(home, ".dub", "packages");
-      } else {
-        console.warn(
-          "Package cache not supported: could not find HOME variable",
-        );
-        return null;
-      }
-    // windows
-    case "win32":
-      let appdata = process.env["LOCALAPPDATA"];
-      if (appdata) {
-        return path.join(appdata, "dub", "packages");
-      } else {
-        console.warn(
-          "Package cache not supported: could not find LOCALAPPDATA variable",
-        );
-        return null;
-      }
-    default:
-      console.warn(
-        "Package cache not supported: unknown platform " + process.platform,
-      );
-      return null;
-  }
-}
-
-function parseBool(input: any | undefined): boolean {
-  if (input)
-    return (
-      input === "true" || input === "yes" || input === "on" || input === true
-    );
-  else return false;
 }
 
 main();
