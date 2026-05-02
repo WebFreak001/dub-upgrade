@@ -130,9 +130,12 @@ function execDubUpgrade(dub: string, dubArgs: string): Promise<boolean> {
         if (
           output.indexOf("Error querying versions") != -1 ||
           output.indexOf("Failed to download") != -1
-        )
+        ) {
           return resolve(false);
-        else return reject("dub exited with error code " + code);
+        } else {
+          console.log(output);
+          return reject("dub exited with error code " + code);
+        }
       }
     });
   });
