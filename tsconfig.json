@@ -1,7 +1,7 @@
 {
 	"compilerOptions": {
-		"target": "ES6",
-		"module": "CommonJS",
+		"target": "es2025",
+		"module": "nodenext",
 		"outDir": "lib",
 		"rootDir": "src",
 		"strict": true,
@@ -10,7 +10,8 @@
 		"strictFunctionTypes": true,
 		"strictBindCallApply": true,
 		"strictPropertyInitialization": true,
-		"esModuleInterop": true
+		"esModuleInterop": true,
+		"types": ["node"]
 	},
 	"exclude": ["node_modules"]
 }
