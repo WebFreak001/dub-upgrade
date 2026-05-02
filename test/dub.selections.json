@@ -1,10 +1,18 @@
 {
 	"fileVersion": 1,
 	"versions": {
-		"libasync": "0.7.9",
-		"libevent": "2.0.2+2.0.16",
-		"memutils": "0.4.13",
+		"botan": "1.12.19",
+		"botan-math": "1.0.4",
+		"diet-ng": "1.8.4",
+		"during": "0.3.0",
+		"eventcore": "0.9.39",
+		"memutils": "1.0.11",
+		"mir-linux-kernel": "1.0.1",
 		"openssl": "1.1.6+1.0.1g",
-		"vibe-d": "0.7.29"
+		"silly": "1.1.1",
+		"stdx-allocator": "2.77.5",
+		"taggedalgebraic": "1.0.1",
+		"vibe-core": "1.24.0",
+		"vibe-d": "0.9.0"
 	}
 }
