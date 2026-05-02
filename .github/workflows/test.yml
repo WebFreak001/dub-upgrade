@@ -17,6 +17,8 @@ jobs:
       matrix:
         os: [ubuntu-latest, windows-latest, macOS-latest]
         dc: [ldc-latest, dmd-latest]
+        exclude:
+          - { os: macOS-latest, dc: dmd-latest }
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v5
@@ -42,6 +44,8 @@ jobs:
       matrix:
         os: [ubuntu-latest, windows-latest, macOS-latest]
         dc: [ldc-latest, dmd-latest]
+        exclude:
+          - { os: macOS-latest, dc: dmd-latest }
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v5
