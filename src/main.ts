@@ -55,7 +55,7 @@ export async function main(): Promise<void> {
 }
 
 export async function dubUpgrade(dub: string, dubArgs: string): Promise<void> {
-  console.log("Running dub upgrade");
+  console.log("Running `dub upgrade " + dubArgs + "`");
   if (!(await execDubUpgrade(dub, dubArgs))) {
     console.log("Dub network failure, trying again in 30s...");
     await delay(30000);
