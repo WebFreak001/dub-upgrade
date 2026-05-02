@@ -16,49 +16,49 @@ This can be configured using `args` like described below.
 Basic usage (including cache):
 ```yml
 steps:
-  - uses: actions/checkout@v1
+  - uses: actions/checkout@v5
 
-  - uses: dlang-community/setup-dlang@v1 # install D compiler & Dub
+  - uses: dlang-community/setup-dlang@v2 # install D compiler & DUB
     with:
       compiler: dmd-latest
 
-  - uses: WebFreak001/dub-upgrade@v0.1
+  - uses: WebFreak001/dub-upgrade@v0.3.0
 
-  - name: Run tests # do whatever with upgraded & fetched dependencies
+  - name: Run tests # do whatever with fetched dependencies
     run: dub test
 ```
 
 Not using cache, only retrying on network failure:
 ```yml
 steps:
-  - uses: actions/checkout@v1
+  - uses: actions/checkout@v5
 
-  - uses: dlang-community/setup-dlang@v1 # install D compiler & Dub
+  - uses: dlang-community/setup-dlang@v2 # install D compiler & DUB
     with:
       compiler: dmd-latest
 
-  - uses: WebFreak001/dub-upgrade@v0.1
+  - uses: WebFreak001/dub-upgrade@v0.3.0
     with:
       cache: false
 
-  - name: Run tests # do whatever with upgraded & fetched dependencies
+  - name: Run tests # do whatever with fetched dependencies
     run: dub test
 ```
 
 Old behavior, not respecting dub.selections.json:
 ```yml
 steps:
-  - uses: actions/checkout@v1
+  - uses: actions/checkout@v5
 
-  - uses: dlang-community/setup-dlang@v1 # install D compiler & Dub
+  - uses: dlang-community/setup-dlang@v2 # install D compiler & DUB
     with:
       compiler: dmd-latest
 
-  - uses: WebFreak001/dub-upgrade@v0.1
+  - uses: WebFreak001/dub-upgrade@v0.3.0
     with:
       args: ''
 
-  - name: Run tests # do whatever with upgraded & fetched dependencies
+  - name: Run tests # do whatever with fetched dependencies
     run: dub test
 ```
 
