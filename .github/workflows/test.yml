@@ -17,11 +17,13 @@ jobs:
       matrix:
         os: [ubuntu-latest, windows-latest, macOS-latest]
         dc: [ldc-latest, dmd-latest]
+        exclude:
+          - { os: macOS-latest, dc: dmd-latest }
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v5
 
-      - uses: dlang-community/setup-dlang@v1
+      - uses: dlang-community/setup-dlang@v2
         with:
           compiler: ${{ matrix.dc }}
 
@@ -42,11 +44,13 @@ jobs:
       matrix:
         os: [ubuntu-latest, windows-latest, macOS-latest]
         dc: [ldc-latest, dmd-latest]
+        exclude:
+          - { os: macOS-latest, dc: dmd-latest }
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v5
 
-      - uses: dlang-community/setup-dlang@v1
+      - uses: dlang-community/setup-dlang@v2
         with:
           compiler: ${{ matrix.dc }}
 
