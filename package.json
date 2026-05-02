@@ -3,6 +3,7 @@
 	"version": "0.2.0",
 	"private": false,
 	"description": "Run `dub upgrade` trying to repeat on network failure and using package cache",
+	"type": "module",
 	"main": "lib/main.js",
 	"scripts": {
 		"build": "tsc"
