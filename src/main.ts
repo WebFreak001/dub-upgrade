@@ -38,19 +38,17 @@ export async function main(): Promise<void> {
         "dub is not installed or was not found in PATH - try installing D using dlang-community/setup-dlang@v1 first!",
       );
 
+    const cacheKey = `dub-package-cache-${process.platform}-${await hashAll(dubArgs)}`;
     if (cacheDirs) {
-      const cacheKey = `dub-package-cache-${process.platform}-${await hashAll(dubArgs)}`;
       await cache.restoreCache(cacheDirs, cacheKey, [
-        "dub-package-cache-" + process.platform,
+        `dub-package-cache-${process.platform}-`,
+        `dub-package-cache-`,
       ]);
+      core.saveState("CACHE_DIRS", JSON.stringify(cacheDirs));
+      core.saveState("CACHE_KEY", cacheKey);
     }
 
     await dubUpgrade(dub, dubArgs);
-
-    if (cacheDirs) {
-      core.saveState("CACHE_DIRS", JSON.stringify(cacheDirs));
-      core.saveState("DUB_ARGS", dubArgs);
-    }
   } catch (e) {
     core.setFailed("dub upgrade failed: " + e);
   }
